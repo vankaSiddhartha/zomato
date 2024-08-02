@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Restaurant Details</title>
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      @keyframes slideRight {
+        0% {
+          opacity: 0;
+          transform: translateX(-100%);
+        }
+        100% {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes slideUp {
+        0% {
+          opacity: 0;
+          transform: translateY(100%);
+        }
+        100% {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .text-slide-right {
+        animation: slideRight 1s ease-out;
+      }
+
+      .container-slide-up {
+        animation: slideUp 1s ease-out;
+      }
+
+      .reviews-section {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: left;
+      }
+
+      .review {
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+
+      .review-form {
+        margin: 20px 0;
+      }
+    </style>
+  </head>
+  <body style="background-color: antiquewhite; margin: 0; padding: 0">
+    <div class="container mt-5 container-slide-up">
+      <h1 class="mb-4" style="text-align: center; margin-bottom: 40px">
+        Restaurant Details
+      </h1>
+      <div
+        id="restaurant-details"
+        style="text-align: left; display: flex; justify-content: center"
+      ></div>
+
+      <!-- Reviews Section -->
+      <div class="reviews-section mt-5">
+        <h2 class="text-center">Reviews</h2>
+        <div id="reviews"></div>
+      </div>
+
+      <!-- Review Form -->
+      <div class="review-form mt-5">
+        <h2 class="text-center">Add a Review</h2>
+        <form id="review-form">
+          <div class="form-group">
+            <label for="reviewer-name">Enter your name</label>
+            <input
+              type="text"
+              id="reviewer-name"
+              class="form-control"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>Rating:</label><br />
+            <input type="radio" name="rating" value="1" required /> 1
+            <input type="radio" name="rating" value="2" /> 2
+            <input type="radio" name="rating" value="3" /> 3
+            <input type="radio" name="rating" value="4" /> 4
+            <input type="radio" name="rating" value="5" /> 5
+          </div>
+          <div class="form-group">
+            <label for="review-text">Enter your Review</label>
+            <textarea
+              id="review-text"
+              class="form-control"
+              rows="3"
+              required
+            ></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const urlParams = new URLSearchParams(window.location.search);
+        const restaurantId = urlParams.get("id");
+
+        if (restaurantId) {
+          fetch(`/api/restaurants/${restaurantId}`)
+            .then((response) => response.json())
+            .then((data) => {
+              if (data && data.restaurant) {
+                const restaurant = data.restaurant;
+                const restaurantDetails =
+                  document.getElementById("restaurant-details");
+                restaurantDetails.innerHTML = `
+                  <div style="width: 80%; max-width: 800px; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                    <img src="${
+                      restaurant.featured_image || "default-image-url"
+                    }" style="width: 100%; height: 250px; object-fit: cover; border-bottom: 2px solid #ddd;" alt="${
+                  restaurant.name
+                }">
+                    <div style="padding: 20px; background-color: white;">
+                      <h3 class="text-slide-right" style="font-size: 1.75em; margin-bottom: 20px;">${
+                        restaurant.name || "Restaurant Name"
+                      }</h3>
+                      <p class="text-slide-right" style="font-size: 1.1em; margin-bottom: 10px;"><strong>Cuisine:</strong> ${
+                        restaurant.cuisines || "N/A"
+                      }</p>
+                      <p class="text-slide-right" style="font-size: 1.1em; margin-bottom: 10px;"><strong>Offers:</strong> ${
+                        Array.isArray(restaurant.offers) &&
+                        restaurant.offers.length > 0
+                          ? restaurant.offers.join(", ")
+                          : "N/A"
+                      }</p>
+                      <p class="text-slide-right" style="font-size: 1.1em; margin-bottom: 10px;"><strong>Average Cost for Two:</strong> ₹${
+                        restaurant.average_cost_for_two || "N/A"
+                      }</p>
+                      <p class="text-slide-right" style="font-size: 1.1em; margin-bottom: 10px;"><strong>Rating:</strong> ${
+                        restaurant.user_rating?.aggregate_rating || "N/A"
+                      } &#9733;</p>
+                      <p class="text-slide-right" style="font-size: 1.1em; margin-bottom: 10px;"><strong>Events:</strong> ${
+                        Array.isArray(restaurant.events) &&
+                        restaurant.events.length > 0
+                          ? restaurant.events.join(", ")
+                          : "N/A"
+                      }</p>
+                      <p class="text-slide-right" style="font-size: 1.1em; margin-bottom: 10px;"><strong>Online Delivery:</strong> ${
+                        restaurant.has_online_delivery ? "Yes" : "No"
+                      }</p>
+                      <p class="text-slide-right" style="font-size: 1.1em; margin-bottom: 10px;"><strong>Table Booking:</strong> ${
+                        restaurant.has_table_booking ? "Yes" : "No"
+                      }</p>
+                      <p class="text-slide-right" style="font-size: 1.1em; margin-bottom: 10px;"><strong>Events URL:</strong> ${
+                        restaurant.events_url
+                          ? `<a href="${restaurant.events_url}" target="_blank">View Events</a>`
+                          : "N/A"
+                      }</p>
+                      <p class="text-slide-right" style="font-size: 1.1em; margin-bottom: 10px;"><strong>Menu:</strong> ${
+                        restaurant.menu_url
+                          ? `<a href="${restaurant.menu_url}" target="_blank">View Menu</a>`
+                          : "N/A"
+                      }</p>
+                      <p class="text-slide-right" style="font-size: 1.1em; margin-bottom: 10px;"><strong>Booking URL:</strong> ${
+                        restaurant.book_url
+                          ? `<a href="${restaurant.book_url}" target="_blank">Book Now</a>`
+                          : "N/A"
+                      }</p>
+                      <p class="text-slide-right" style="font-size: 1.1em; margin-bottom: 10px;"><strong>Address:</strong> ${
+                        restaurant.location?.address || "N/A"
+                      }</p>
+                    </div>
+                  </div>
+                `;
+              }
+              // Display reviews
+              const reviewsSection = document.getElementById("reviews");
+              if (data.reviews && data.reviews.length > 0) {
+                reviewsSection.innerHTML = data.reviews
+                  .map(
+                    (review) => `
+                      <div class="review">
+                        <p><strong>${review.name}</strong> (Rating: ${
+                      review.rating
+                    })</p>
+                        <p>${review.review}</p>
+                        <p><small>${new Date(
+                          review.date
+                        ).toLocaleString()}</small></p>
+                      </div>
+                    `
+                  )
+                  .join("");
+              } else {
+                reviewsSection.innerHTML = "<p>No reviews yet.</p>";
+              }
+            })
+            .catch((error) => console.error("Error fetching details:", error));
+        } else {
+          console.error("No restaurant ID provided");
+          document.getElementById("restaurant-details").innerHTML =
+            "<p>No restaurant ID provided.</p>";
+        }
+
+        // Handle review form submission
+        document
+          .getElementById("review-form")
+          .addEventListener("submit", function (event) {
+            event.preventDefault();
+            const name = document.getElementById("reviewer-name").value;
+            const rating = document.querySelector(
+              'input[name="rating"]:checked'
+            )?.value;
+            const reviewText = document.getElementById("review-text").value;
+
+            if (name && rating && reviewText) {
+              fetch(`/api/restaurants/${restaurantId}/reviews`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  name,
+                  rating,
+                  review: reviewText,
+                }),
+              })
+                .then((response) => response.json())
+                .then((data) => {
+                  if (data.success) {
+                    alert("Review submitted successfully.");
+                    location.reload();
+                    // Clear the form
+                    document.getElementById("review-form").reset();
+                    // Reload reviews
+                    document.getElementById("reviews").innerHTML =
+                      "<p>Loading reviews...</p>";
+                    fetch(`/api/restaurants/${restaurantId}`)
+                      .then((response) => response.json())
+                      .then((data) => {
+                        const reviews = data.restaurant.reviews || [];
+                        if (reviews.length > 0) {
+                          document.getElementById("reviews").innerHTML = reviews
+                            .map(
+                              (review) => `
+                              <div class="review">
+                                <p><strong>${review.name}</strong> (Rating: ${
+                                review.rating
+                              })</p>
+                                <p>${review.review}</p>
+                                <p><small>${new Date(
+                                  review.date
+                                ).toLocaleString()}</small></p>
+                              </div>
+                            `
+                            )
+                            .join("");
+                        } else {
+                          document.getElementById("reviews").innerHTML =
+                            "<p>No reviews yet.</p>";
+                        }
+                      });
+                  } else {
+                    alert("Failed to submit review.");
+                  }
+                })
+                .catch((error) =>
+                  console.error("Error submitting review:", error)
+                );
+            } else {
+              alert("Please fill in all fields.");
+            }
+          });
+      });
+    </script>
+  </body>
+</html>

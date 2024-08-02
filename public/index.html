@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/x-icon" href="./assets/images/fav.png" />
+    <title>Zomato</title>
+    <style>
+      .card {
+        margin-bottom: 20px;
+        border-radius: 10px;
+        overflow: hidden;
+        cursor: pointer;
+      }
+      .card-body {
+        padding: 15px;
+      }
+      .rating {
+        color: green;
+        font-size: 1.2em;
+        display: flex;
+        align-items: center;
+      }
+      .rating .star {
+        color: gold;
+        margin-left: 5px;
+      }
+      .card-text {
+        margin-bottom: 0;
+      }
+      .card-img-top {
+        height: 200px;
+        object-fit: cover;
+      }
+      .pagination {
+        justify-content: center;
+        margin: 30px 0;
+        width: 100%;
+        overflow-x: auto;
+      }
+      .pagination .page-item {
+        margin: 0 5px;
+      }
+      .pagination .page-link {
+        border-radius: 5px;
+        width: 50px;
+        height: 50px;
+        text-align: center;
+        line-height: 50px;
+      }
+      .pagination .page-item.active .page-link {
+        background-color: #e23744;
+        color: white;
+      }
+      .pagination .page-item.disabled .page-link {
+        color: #6c757d;
+        cursor: not-allowed;
+      }
+      .pagination .dots {
+        cursor: default;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe
+      src="/home.html"
+      title="Home Page"
+      style="width: 100%; height: 470px; border: none"
+    ></iframe>
+
+    <div class="container mt-5">
+      <h1 class="mb-4">Restaurants</h1>
+      <div class="row" id="restaurant-list"></div>
+      <nav>
+        <ul class="pagination" id="pagination-controls"></ul>
+      </nav>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const restaurantList = document.getElementById("restaurant-list");
+        const paginationControls = document.getElementById(
+          "pagination-controls"
+        );
+
+        let currentPage = 1;
+        const limit = 15; // Number of restaurants per page
+        let totalPages = 1; // Default value; will be updated after fetching data
+
+        function fetchRestaurants(page) {
+          fetch(`/api/restaurants?page=${page}&limit=${limit}`)
+            .then((response) => response.json())
+            .then((data) => {
+              restaurantList.innerHTML = ""; // Clear current list
+              paginationControls.innerHTML = ""; // Clear current pagination
+              console.log(data);
+
+              if (data && Array.isArray(data.restaurants)) {
+                data.restaurants.forEach((item) => {
+                  console.log(item);
+                  const restaurant = item.restaurant || {};
+                  const {
+                    id,
+                    name = "No Name",
+                    featured_image = "https://via.placeholder.com/150",
+                    cuisines = "No Cuisine",
+                    user_rating = {},
+                    average_cost_for_two = "Not Available",
+                  } = restaurant;
+
+                  const card = document.createElement("div");
+                  card.className = "col-md-4"; // Adjusted to 4 for 3 columns per row
+                  card.innerHTML = `
+                    <div class="card" onclick="window.location.href='/details.html?id=${id}'">
+                      <img src="${featured_image}" class="card-img-top" alt="${name}">
+                      <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                          <h5 class="card-title">${name}</h5>
+                          <div class="rating">
+                            <span>${
+                              user_rating.aggregate_rating || "N/A"
+                            }</span>
+                            <span class="star">&#9733;</span>
+                          </div>
+                        </div>
+                        <p class="card-text">
+                          <strong>Cuisine:</strong> ${cuisines}<br>
+                          <strong>Cost for Two:</strong> ₹${average_cost_for_two}<br>
+                        </p>
+                      </div>
+                    </div>
+                  `;
+                  restaurantList.appendChild(card);
+                });
+
+                totalPages = Math.ceil(data.total / limit);
+
+                // Add pagination controls
+                const paginationItems = [];
+
+                // Add First Page Button
+                if (totalPages > 1) {
+                  paginationItems.push(
+                    createPageItem(1, "First", currentPage === 1)
+                  );
+                }
+
+                // Add Previous Page Button
+                if (currentPage > 1) {
+                  paginationItems.push(
+                    createPageItem(currentPage - 1, "Prev", false)
+                  );
+                }
+
+                // Add Dots or Pages
+                if (totalPages > 5) {
+                  if (currentPage > 3) {
+                    paginationItems.push(createDots());
+                  }
+                  for (
+                    let i = Math.max(2, currentPage - 1);
+                    i <= Math.min(totalPages - 1, currentPage + 1);
+                    i++
+                  ) {
+                    paginationItems.push(
+                      createPageItem(i, i, i === currentPage)
+                    );
+                  }
+                  if (currentPage < totalPages - 2) {
+                    paginationItems.push(createDots());
+                  }
+                } else {
+                  for (let i = 2; i < totalPages; i++) {
+                    paginationItems.push(
+                      createPageItem(i, i, i === currentPage)
+                    );
+                  }
+                }
+
+                // Add Next Page Button
+                if (currentPage < totalPages) {
+                  paginationItems.push(
+                    createPageItem(currentPage + 1, "Next", false)
+                  );
+                }
+
+                // Add Last Page Button
+                if (totalPages > 1) {
+                  paginationItems.push(
+                    createPageItem(
+                      totalPages,
+                      "Last",
+                      currentPage === totalPages
+                    )
+                  );
+                }
+
+                paginationItems.forEach((item) =>
+                  paginationControls.appendChild(item)
+                );
+
+                // Add click event for pagination
+                paginationControls
+                  .querySelectorAll(".page-link")
+                  .forEach((link) => {
+                    link.addEventListener("click", function (e) {
+                      e.preventDefault();
+                      const page = this.getAttribute("data-page");
+                      if (page !== currentPage.toString()) {
+                        currentPage = parseInt(page, 10);
+                        fetchRestaurants(currentPage);
+                      }
+                    });
+                  });
+              } else {
+                restaurantList.innerHTML = "<p>No restaurants found.</p>";
+              }
+            })
+            .catch((error) => console.error("Error fetching data:", error));
+        }
+
+        function createPageItem(page, text, isActive) {
+          const pageItem = document.createElement("li");
+          pageItem.className = `page-item ${isActive ? "active" : ""}`;
+          pageItem.innerHTML = `
+            <a class="page-link" href="#" data-page="${page}">${text}</a>
+          `;
+          return pageItem;
+        }
+
+        function createDots() {
+          const dots = document.createElement("li");
+          dots.className = "page-item dots disabled";
+          dots.innerHTML = `<span class="page-link">...</span>`;
+          return dots;
+        }
+
+        // Initial fetch
+        fetchRestaurants(currentPage);
+      });
+    </script>
+  </body>
+</html>
