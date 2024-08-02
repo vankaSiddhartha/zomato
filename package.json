@@ -8,8 +8,7 @@
     "mongodb": "^6.8.0",
     "mongoose": "^8.5.1",
     "nodemon": "^3.1.4",
-    "path": "^0.12.7",
-    "serverless-http": "^3.2.0"
+    "path": "^0.12.7"
   },
   "name": "zomato1",
   "version": "1.0.0",
@@ -18,10 +17,8 @@
     "node": "18.x"
   },
   "scripts": {
-      "test": "echo \"Error: no test specified\" && exit 1",
-  "start": "node server.js",
-  "build": "netlify-lambda build functions",
-  "dev": "netlify-lambda serve functions"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
